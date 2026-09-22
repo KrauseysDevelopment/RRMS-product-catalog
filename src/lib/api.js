@@ -95,6 +95,7 @@ export async function getCatalog() {
  *   userStatus - why the user is missing, when it is: "ok" | "guest" | "missing"
  *   lineItems  - each item with its product attached and a resolved flag
  *   itemCount  - total units in the cart (sum of quantities, not line count)
+ *   displayDate - the cart date, formatted once on the server
  */
 function joinCart(cart, usersById, productsById) {
   const userId = key(cart.userId);
@@ -123,7 +124,14 @@ function joinCart(cart, usersById, productsById) {
   // shows the per-line quantities, so both readings are visible to the user.
   const itemCount = lineItems.reduce((sum, line) => sum + (line.quantity ?? 0), 0);
 
-  return { ...cart, userId, user, userStatus, lineItems, itemCount };
+  // Format the date here, on the server, and hand the client a finished
+  // string. Browsers and Node ship different ICU data, so the same
+  // Intl.DateTimeFormat call can produce "Aug 9, 2024, 2:32 PM" on the server
+  // and "Aug 9, 2024 at 2:32 PM" in Chrome. That difference is a React
+  // hydration mismatch. One formatter, one output.
+  const displayDate = formatDate(cart.date);
+
+  return { ...cart, userId, user, userStatus, lineItems, itemCount, displayDate };
 }
 
 /** Display helpers kept next to the shape they format. */

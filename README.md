@@ -93,6 +93,13 @@ Interactivity (expanding a detail row, the add form) needs browser state, so
 those pieces are client components that receive already-joined data as props.
 The join logic stays in one place.
 
+Dates are formatted on the server, inside the join, and passed to the client
+as finished strings. Node and each browser ship their own ICU locale data, so
+the same `Intl.DateTimeFormat` call can print `Aug 9, 2024, 2:32 PM` on the
+server and `Aug 9, 2024 at 2:32 PM` in Chrome. Formatting in a client
+component would make the server HTML and the client render disagree, which
+React reports as a hydration mismatch. Formatting once avoids that.
+
 ### Form validation
 
 Validation runs in two layers. Native HTML constraints (`required`, `type`,

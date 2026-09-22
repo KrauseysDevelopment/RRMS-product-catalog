@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { cartUserLabel, formatDate } from "@/lib/api";
+import { cartUserLabel } from "@/lib/api";
 
 /**
  * Carts list with an expandable detail row.
@@ -87,7 +87,7 @@ function CartRow({ cart, isOpen, onToggle }) {
             </span>
           )}
         </td>
-        <td className="px-4 py-3 text-slate-600">{formatDate(cart.date)}</td>
+        <td className="px-4 py-3 text-slate-600">{cart.displayDate}</td>
         <td className="px-4 py-3">
           <StatusBadge status={cart.status} />
         </td>
@@ -132,7 +132,7 @@ function CartDetail({ cart, onClose }) {
             Cart {cart.id}
           </h2>
           <p className="mt-0.5 text-xs uppercase tracking-wide text-slate-500">
-            {formatDate(cart.date)}
+            {cart.displayDate}
           </p>
         </div>
         <button
