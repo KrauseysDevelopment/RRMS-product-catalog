@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+:root {
+  --rr-navy: #10243c;
+  --rr-red: #c8102e;
+}
