@@ -28,17 +28,19 @@ export default function CartsView({ carts }) {
       <PageHeader
         eyebrow="Orders"
         title="Carts"
-        description={`${carts.length} carts joined to their customers and products. Select a row for detail.`}
+        description={`${carts.length} carts. Select a row to see the customer, items and totals.`}
       />
 
       {unresolved > 0 && (
         <div className="mb-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <span aria-hidden="true" className="font-black">!</span>
           <p>
-            <strong className="font-bold">Note on the source data:</strong>{" "}
-            {unresolved} of {carts.length} carts reference a user that does not
-            exist in the users endpoint, or no user at all. Those rows are
-            labelled rather than left blank.
+            <strong className="font-bold">
+              {unresolved} of {carts.length} carts need review.
+            </strong>{" "}
+            They are not linked to a customer on file, either because they are
+            guest checkouts or because the customer record is missing. They are
+            flagged below.
           </p>
         </div>
       )}
@@ -113,7 +115,7 @@ function UserFlag({ cart }) {
   if (cart.userStatus === "ok") return null;
   return (
     <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
-      {cart.userStatus === "guest" ? "No account" : "Unresolved"}
+      {cart.userStatus === "guest" ? "Guest" : "Not on file"}
     </span>
   );
 }
@@ -210,8 +212,8 @@ function CartDetail({ cart, onClose }) {
         ) : (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {cart.userStatus === "guest"
-              ? "This cart has no userId, so there is no customer record to display."
-              : `This cart references user ID ${cart.userId}, which does not exist in the users endpoint. Contact details are unavailable.`}
+              ? "This is a guest checkout, so there is no customer record to display."
+              : `This cart belongs to customer #${cart.userId}, who is not on file. Contact details are unavailable.`}
           </p>
         )}
       </section>
@@ -232,7 +234,7 @@ function CartDetail({ cart, onClose }) {
                     </>
                   ) : (
                     <p className="text-sm text-amber-800">
-                      Product ID {line.productId} is not present in the products endpoint.
+                      Product #{line.productId} is no longer in the catalog.
                     </p>
                   )}
                 </div>

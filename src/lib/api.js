@@ -184,6 +184,6 @@ export function formatDate(value) {
 /** The label for a cart's customer, accounting for the two failure modes. */
 export function cartUserLabel(cart) {
   if (cart.userStatus === "guest") return "Guest checkout";
-  if (cart.userStatus === "missing") return `Unknown user (ID ${cart.userId})`;
+  if (cart.userStatus === "missing") return `Unknown customer #${cart.userId}`;
   return `${cart.user.firstname} ${cart.user.lastname}`;
 }

@@ -12,8 +12,8 @@ export default function ApiError({ resource, message }) {
     <div className="mx-auto max-w-xl rounded-xl border-t-4 border-red-500 bg-white p-6 shadow-sm ring-1 ring-line">
       <h1 className="text-lg font-bold text-ink">Could not load {resource}</h1>
       <p className="mt-2 text-sm text-muted">
-        The JSONing API did not return data. This is an upstream issue rather
-        than a problem with the page itself. Try again in a moment.
+        The data service did not respond. This is usually temporary, so try
+        again in a moment.
       </p>
       {message && (
         <p className="mt-3 break-words rounded-md border border-red-200 bg-red-50 px-3 py-2 font-mono text-xs text-red-800">

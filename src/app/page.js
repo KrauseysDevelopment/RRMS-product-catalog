@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCatalog } from "@/lib/api";
 
 /**
  * Home page.
@@ -7,8 +8,30 @@ import Link from "next/link";
  * for carts. These are real routes rather than in-page state, so each view is
  * linkable, shareable and independently reloadable, and the browser back
  * button behaves the way a user expects.
+ *
+ * The "at a glance" card reuses the same getCatalog() call as the other
+ * pages. If the data can't be loaded, the card is simply left out: the two
+ * buttons are what the page is for, so they should never depend on it.
  */
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+async function loadSummary() {
+  try {
+    const { products, carts } = await getCatalog();
+    return {
+      products: products.length,
+      categories: new Set(products.map((p) => p.category)).size,
+      carts: carts.length,
+      needsReview: carts.filter((c) => c.userStatus !== "ok").length,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export default async function HomePage() {
+  const summary = await loadSummary();
+
   return (
     <section className="relative overflow-hidden rounded-2xl bg-white px-6 py-12 shadow-sm ring-1 ring-line sm:px-10 sm:py-20">
       {/* Slanted panels echo the angled shapes used across rrms.com. */}
@@ -21,42 +44,31 @@ export default function HomePage() {
         className="absolute -right-10 top-0 hidden h-full w-[16%] -skew-x-12 bg-white/15 md:block"
       />
 
-      <div
-        aria-hidden="true"
-        className="absolute right-12 top-1/2 hidden w-64 -translate-y-1/2 rounded-xl bg-white/95 p-5 shadow-xl lg:block"
-      >
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-deep">
-          Three endpoints, one view
-        </p>
-        <ul className="mt-3 space-y-2 font-mono text-xs text-ink">
-          {["/products", "/users", "/carts"].map((path) => (
-            <li key={path} className="flex items-center gap-2">
-              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
-                GET
-              </span>
-              {path}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted">
-          <span className="h-px flex-1 bg-line" />
-          joined on the server
-          <span className="h-px flex-1 bg-line" />
+      {summary && (
+        <div className="absolute right-12 top-1/2 hidden w-64 -translate-y-1/2 rounded-xl bg-white/95 p-5 shadow-xl lg:block">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-deep">
+            At a glance
+          </h2>
+          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4">
+            <Figure label="Products" value={summary.products} />
+            <Figure label="Categories" value={summary.categories} />
+            <Figure label="Carts" value={summary.carts} />
+            <Figure label="Needs review" value={summary.needsReview} tone="warn" />
+          </dl>
         </div>
-      </div>
+      )}
 
       <div className="relative max-w-xl">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-deep">
           Product Catalog
         </p>
         <h1 className="mt-3 text-3xl font-black uppercase leading-tight tracking-tight text-ink sm:text-4xl">
-          Products and carts, <br className="hidden sm:block" />
-          joined and verified.
+          Catalog and orders, <br className="hidden sm:block" />
+          in one place.
         </h1>
         <p className="mt-4 max-w-md text-base leading-relaxed text-muted">
-          A Next.js front end over the JSONing public API. Browse the product
-          catalog, or open the carts view to see orders joined to their
-          customers, line items and totals.
+          Browse products and stock levels, review customer carts and order
+          totals, and add new products to the catalog.
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -75,5 +87,16 @@ export default function HomePage() {
         </div>
       </div>
     </section>
+  );
+}
+
+function Figure({ label, value, tone }) {
+  return (
+    <div>
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-muted">{label}</dt>
+      <dd className={`mt-0.5 text-2xl font-black tabular-nums ${tone === "warn" ? "text-amber-700" : "text-ink"}`}>
+        {value}
+      </dd>
+    </div>
   );
 }

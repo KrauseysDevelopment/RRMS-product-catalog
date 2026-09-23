@@ -222,10 +222,6 @@ export default function AddProductForm({ onSubmit, onCancel }) {
         </div>
       </form>
 
-      <p className="mt-4 border-t border-line pt-3 text-xs text-muted">
-        The API has no create endpoint, so a saved product is held in local
-        component state and flagged in the table rather than persisted.
-      </p>
     </div>
   );
 }

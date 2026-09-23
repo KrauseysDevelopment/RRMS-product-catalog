@@ -131,6 +131,12 @@ blue (about 4.9:1) carries buttons and links. Roboto is self-hosted from
 Google Fonts being reachable. On phones, the tables switch to stacked cards so
 nothing scrolls sideways.
 
+### Interface copy
+
+The screens are written for the people who would use them day to day, so the
+UI talks about products, carts and customers rather than endpoints or ids.
+Implementation details live in the code comments and this README.
+
 ### Image URLs
 
 `image_url` values point at `example.com` and resolve to nothing. The task

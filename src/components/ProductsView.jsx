@@ -232,11 +232,6 @@ function ProductDetail({ product, onClose }) {
           value={<span className="break-all font-mono text-xs text-muted">{product.image_url}</span>}
         />
       </dl>
-
-      <p className="mt-5 border-t border-line pt-3 text-xs text-muted">
-        Image URLs in this dataset point at example.com and resolve to nothing,
-        so the URL is shown as text rather than rendered as a broken image.
-      </p>
     </div>
   );
 }
@@ -244,7 +239,7 @@ function ProductDetail({ product, onClose }) {
 function LocalBadge() {
   return (
     <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-amber-800">
-      Added locally
+      New
     </span>
   );
 }

@@ -22,14 +22,12 @@ const roboto = localFont({
 export const metadata = {
   title: "RRMS Product Catalog",
   description:
-    "A Next.js take-home for Rapid Response Monitoring Services: products and carts from the JSONing public API, joined and validated.",
+    "Browse the product catalog, review customer carts and order totals, and add new products.",
 };
 
 export const viewport = {
   themeColor: "#1b75bc",
 };
-
-const REPO_URL = "https://github.com/KrauseysDevelopment/RRMS-product-catalog";
 
 export default function RootLayout({ children }) {
   return (
@@ -67,20 +65,9 @@ export default function RootLayout({ children }) {
         <footer className="border-t border-line bg-white">
           <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted sm:flex-row sm:items-center">
             <p className="max-w-2xl leading-relaxed">
-              Take-home project by Nicholas Krause for the Rapid Response
-              Monitoring Services Software Engineer role. Not affiliated with or
-              endorsed by RRMS. Data from the JSONing public mock API.
+              Demo application by Nicholas Krause for Rapid Response Monitoring
+              Services. Sample data only.
             </p>
-            <div className="flex gap-4 sm:ml-auto">
-              <a
-                href={REPO_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-brand-deep hover:underline"
-              >
-                Source on GitHub
-              </a>
-            </div>
           </div>
         </footer>
       </body>
