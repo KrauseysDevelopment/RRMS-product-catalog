@@ -11,7 +11,7 @@ import { DetailField, PageHeader, StatusBadge, TogglePill } from "@/components/u
  * reaches this component it already carries its resolved `user`, `lineItems`
  * with products and line totals attached, a `subtotal`, a `userStatus` flag
  * and a server-formatted `displayDate`. This component only presents it,
- * which keeps the join in one tested place instead of scattered through JSX.
+ * which keeps the join in one place instead of scattered through JSX.
  */
 
 export default function CartsView({ carts }) {

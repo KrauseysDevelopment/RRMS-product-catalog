@@ -27,7 +27,7 @@ export const metadata = { title: "Products | RRMS Catalog" };
 export default async function ProductsPage() {
   // Only the fetch goes inside try. A try/catch around JSX would not catch
   // render errors anyway, because React renders the component later; those
-  // are handled by app/error.js, the route's error boundary.
+  // are the job of an error boundary (Next's app/error.js convention).
   let products;
   try {
     ({ products } = await getCatalog());
