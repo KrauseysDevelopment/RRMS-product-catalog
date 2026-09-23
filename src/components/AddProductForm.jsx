@@ -119,15 +119,16 @@ export default function AddProductForm({ onSubmit, onCancel }) {
   const errorCount = Object.keys(errors).length;
 
   return (
-    <div className="mb-6 rounded-lg border border-slate-200 bg-white p-5">
+    <div className="mb-6 rounded-xl border-t-4 border-brand bg-white p-5 shadow-sm ring-1 ring-line sm:p-6">
       <div className="mb-4 flex items-center">
-        <h2 className="text-base font-semibold text-slate-900">
-          Add a new product
-        </h2>
+        <div>
+          <h2 className="text-lg font-bold text-ink">Add a new product</h2>
+          <p className="mt-0.5 text-xs text-muted">All fields are required.</p>
+        </div>
         <button
           type="button"
           onClick={onCancel}
-          className="ml-auto rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+          className="ml-auto rounded-md border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-surface"
         >
           Cancel
         </button>
@@ -182,7 +183,7 @@ export default function AddProductForm({ onSubmit, onCancel }) {
         />
 
         <div className="sm:col-span-2">
-          <label htmlFor="description" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="description" className="block text-sm font-medium text-ink">
             Description <span className="text-red-600">*</span>
           </label>
           <textarea
@@ -193,8 +194,8 @@ export default function AddProductForm({ onSubmit, onCancel }) {
             onChange={(e) => setField("description", e.target.value)}
             aria-invalid={Boolean(errors.description)}
             aria-describedby={errors.description ? "description-error" : undefined}
-            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
-              errors.description ? "border-red-400 bg-red-50" : "border-slate-300"
+            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm ${
+              errors.description ? "border-red-400 bg-red-50" : "border-line"
             }`}
           />
           {errors.description && (
@@ -207,21 +208,21 @@ export default function AddProductForm({ onSubmit, onCancel }) {
         <div className="flex gap-3 sm:col-span-2">
           <button
             type="submit"
-            className="rounded-lg bg-[var(--rr-navy)] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+            className="rounded-lg bg-brand-deep px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-ink"
           >
             Save Product
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            className="rounded-lg border border-line px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-surface"
           >
             Cancel
           </button>
         </div>
       </form>
 
-      <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <p className="mt-4 border-t border-line pt-3 text-xs text-muted">
         The API has no create endpoint, so a saved product is held in local
         component state and flagged in the table rather than persisted.
       </p>
@@ -232,7 +233,7 @@ export default function AddProductForm({ onSubmit, onCancel }) {
 function TextField({ id, label, value, error, onChange, type = "text", ...rest }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-medium text-ink">
         {label} <span className="text-red-600">*</span>
       </label>
       <input
@@ -243,8 +244,8 @@ function TextField({ id, label, value, error, onChange, type = "text", ...rest }
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
-          error ? "border-red-400 bg-red-50" : "border-slate-300"
+        className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm ${
+          error ? "border-red-400 bg-red-50" : "border-line"
         }`}
         {...rest}
       />

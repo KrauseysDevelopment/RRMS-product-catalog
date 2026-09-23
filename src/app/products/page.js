@@ -25,10 +25,14 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Products | RRMS Catalog" };
 
 export default async function ProductsPage() {
+  // Only the fetch goes inside try. A try/catch around JSX would not catch
+  // render errors anyway, because React renders the component later; those
+  // are handled by app/error.js, the route's error boundary.
+  let products;
   try {
-    const { products } = await getCatalog();
-    return <ProductsView products={products} />;
+    ({ products } = await getCatalog());
   } catch (error) {
     return <ApiError resource="products" message={error.message} />;
   }
+  return <ProductsView products={products} />;
 }

@@ -1,118 +1,163 @@
 "use client";
 
 import { useState } from "react";
-import { cartUserLabel } from "@/lib/api";
+import { cartUserLabel, formatCurrency } from "@/lib/api";
+import { DetailField, PageHeader, StatusBadge, TogglePill } from "@/components/ui";
 
 /**
- * Carts list with an expandable detail row.
+ * Carts list with an expandable detail panel.
  *
  * Everything rendered here was assembled in lib/api.js. By the time a cart
- * reaches this component it already carries its resolved `user` object, its
- * `lineItems` with full product records attached, and a `userStatus` flag. The
- * component's only job is presentation, which keeps the join logic in one
- * testable place instead of scattered through JSX.
+ * reaches this component it already carries its resolved `user`, `lineItems`
+ * with products and line totals attached, a `subtotal`, a `userStatus` flag
+ * and a server-formatted `displayDate`. This component only presents it,
+ * which keeps the join in one tested place instead of scattered through JSX.
  */
+
 export default function CartsView({ carts }) {
   const [expandedId, setExpandedId] = useState(null);
 
   const unresolved = carts.filter((c) => c.userStatus !== "ok").length;
 
-  function toggleRow(id) {
+  function toggle(id) {
     setExpandedId((current) => (current === id ? null : id));
   }
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Carts</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          {carts.length} carts. Select a row to see the customer and line items.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Orders"
+        title="Carts"
+        description={`${carts.length} carts joined to their customers and products. Select a row for detail.`}
+      />
 
       {unresolved > 0 && (
-        <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <strong className="font-semibold">Note on the source data:</strong>{" "}
-          {unresolved} of {carts.length} carts reference a user that does not
-          exist in the users endpoint, or no user at all. Those rows are
-          labelled rather than left blank.
+        <div className="mb-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span aria-hidden="true" className="font-black">!</span>
+          <p>
+            <strong className="font-bold">Note on the source data:</strong>{" "}
+            {unresolved} of {carts.length} carts reference a user that does not
+            exist in the users endpoint, or no user at all. Those rows are
+            labelled rather than left blank.
+          </p>
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      {/* Desktop and tablet */}
+      <div className="hidden overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line md:block">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Shopping carts</caption>
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-line bg-surface text-xs uppercase tracking-wide text-muted">
             <tr>
-              <th scope="col" className="px-4 py-3 font-medium">Customer</th>
-              <th scope="col" className="px-4 py-3 font-medium">Date</th>
-              <th scope="col" className="px-4 py-3 font-medium">Status</th>
-              <th scope="col" className="px-4 py-3 text-right font-medium">Items</th>
-              <th scope="col" className="w-10 px-4 py-3" />
+              <th scope="col" className="px-4 py-3 font-bold">Customer</th>
+              <th scope="col" className="px-4 py-3 font-bold">Date</th>
+              <th scope="col" className="px-4 py-3 font-bold">Status</th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">Items</th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">Total</th>
+              <th scope="col" className="w-12 px-4 py-3">
+                <span className="sr-only">Details</span>
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {carts.map((cart) => {
-              const isOpen = expandedId === cart.id;
-              return (
-                <CartRow
-                  key={cart.id}
-                  cart={cart}
-                  isOpen={isOpen}
-                  onToggle={() => toggleRow(cart.id)}
-                />
-              );
-            })}
+          <tbody className="divide-y divide-line">
+            {carts.map((cart) => (
+              <CartRow key={cart.id} cart={cart} isOpen={expandedId === cart.id} onToggle={() => toggle(cart.id)} />
+            ))}
           </tbody>
         </table>
       </div>
+
+      {/* Phones */}
+      <ul className="space-y-3 md:hidden">
+        {carts.map((cart) => {
+          const isOpen = expandedId === cart.id;
+          return (
+            <li key={cart.id} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={`cart-card-${cart.id}`}
+                onClick={() => toggle(cart.id)}
+                className="flex w-full items-start gap-3 p-4 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-ink">{cartUserLabel(cart)}</p>
+                  <p className="mt-0.5 text-xs text-muted">{cart.displayDate}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <StatusBadge status={cart.status} />
+                    <UserFlag cart={cart} />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold tabular-nums text-ink">{formatCurrency(cart.subtotal)}</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}
+                  </p>
+                </div>
+                <TogglePill open={isOpen} />
+              </button>
+              {isOpen && (
+                <div id={`cart-card-${cart.id}`} className="border-t border-line bg-surface p-3">
+                  <CartDetail cart={cart} onClose={() => toggle(cart.id)} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
+function UserFlag({ cart }) {
+  if (cart.userStatus === "ok") return null;
+  return (
+    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+      {cart.userStatus === "guest" ? "No account" : "Unresolved"}
+    </span>
+  );
+}
+
 function CartRow({ cart, isOpen, onToggle }) {
+  const detailId = `cart-detail-${cart.id}`;
   return (
     <>
       <tr
         onClick={onToggle}
-        className={`cursor-pointer transition hover:bg-slate-50 ${
-          isOpen ? "bg-slate-50" : ""
-        }`}
+        className={`cursor-pointer transition hover:bg-brand-soft/50 ${isOpen ? "bg-brand-soft/60" : ""}`}
       >
-        <td className="px-4 py-3 font-medium text-slate-900">
-          {cartUserLabel(cart)}
-          {cart.userStatus !== "ok" && (
-            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
-              {cart.userStatus === "guest" ? "No account" : "Unresolved"}
-            </span>
-          )}
+        <td className="px-4 py-3.5 font-medium text-ink">
+          <span className="mr-2">{cartUserLabel(cart)}</span>
+          <UserFlag cart={cart} />
         </td>
-        <td className="px-4 py-3 text-slate-600">{cart.displayDate}</td>
-        <td className="px-4 py-3">
+        <td className="px-4 py-3.5 text-muted">{cart.displayDate}</td>
+        <td className="px-4 py-3.5">
           <StatusBadge status={cart.status} />
         </td>
-        <td className="px-4 py-3 text-right tabular-nums text-slate-600">
-          {cart.itemCount}
+        <td className="px-4 py-3.5 text-right tabular-nums text-muted">{cart.itemCount}</td>
+        <td className="px-4 py-3.5 text-right font-medium tabular-nums text-ink">
+          {formatCurrency(cart.subtotal)}
         </td>
-        <td className="px-4 py-3 text-right">
+        <td className="px-4 py-3.5 text-right">
           <button
             type="button"
             aria-expanded={isOpen}
-            aria-label={isOpen ? `Collapse cart ${cart.id}` : `Expand cart ${cart.id}`}
+            aria-controls={isOpen ? detailId : undefined}
+            aria-label={`${isOpen ? "Hide" : "Show"} details for cart ${cart.id}`}
             onClick={(event) => {
               event.stopPropagation();
               onToggle();
             }}
-            className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="rounded-md p-1"
           >
-            <span aria-hidden="true">{isOpen ? "−" : "+"}</span>
+            <TogglePill open={isOpen} />
           </button>
         </td>
       </tr>
 
       {isOpen && (
-        <tr className="bg-slate-50">
-          <td colSpan={5} className="px-4 pb-5 pt-1">
+        <tr id={detailId} className="bg-brand-soft/60">
+          <td colSpan={6} className="px-4 pb-5 pt-1">
             <CartDetail cart={cart} onClose={onToggle} />
           </td>
         </tr>
@@ -125,41 +170,45 @@ function CartDetail({ cart, onClose }) {
   const { user } = cart;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
-      <div className="mb-5 flex items-start">
+    <div className="rounded-xl border border-line bg-white p-5 shadow-sm">
+      <div className="mb-5 flex items-start gap-4">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">
-            Cart {cart.id}
-          </h2>
-          <p className="mt-0.5 text-xs uppercase tracking-wide text-slate-500">
-            {cart.displayDate}
-          </p>
+          <p className="text-xs font-bold uppercase tracking-wide text-brand-deep">Cart {cart.id}</p>
+          <h2 className="mt-1 text-lg font-bold text-ink">{cartUserLabel(cart)}</h2>
+          <p className="mt-0.5 text-xs text-muted">{cart.displayDate}</p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="ml-auto rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
-        >
-          Close
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <span className="hidden sm:inline-flex">
+            <StatusBadge status={cart.status} />
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-line px-3 py-1.5 text-xs font-bold text-ink transition hover:bg-surface"
+          >
+            Close
+          </button>
+        </div>
       </div>
 
       <section className="mb-6">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Customer
-        </h3>
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Customer</h3>
         {user ? (
-          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="Name" value={`${user.firstname} ${user.lastname}`} />
-            <Field label="Email" value={user.email} />
-            <Field label="Phone" value={user.phone} />
-            <Field
-              label="Location"
-              value={`${user.city}, ${user.state} ${user.zipcode}`}
+          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+            <DetailField label="Name" value={`${user.firstname} ${user.lastname}`} />
+            <DetailField
+              label="Email"
+              value={
+                <a href={`mailto:${user.email}`} className="text-brand-deep hover:underline">
+                  {user.email}
+                </a>
+              }
             />
+            <DetailField label="Phone" value={user.phone} />
+            <DetailField label="Location" value={`${user.city}, ${user.state} ${user.zipcode}`} />
           </dl>
         ) : (
-          <p className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {cart.userStatus === "guest"
               ? "This cart has no userId, so there is no customer record to display."
               : `This cart references user ID ${cart.userId}, which does not exist in the users endpoint. Contact details are unavailable.`}
@@ -168,65 +217,53 @@ function CartDetail({ cart, onClose }) {
       </section>
 
       <section>
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
           Items ({cart.itemCount})
         </h3>
-        <ul className="divide-y divide-slate-100 rounded-md border border-slate-200">
-          {cart.lineItems.map((line, index) => (
-            <li key={`${line.productId}-${index}`} className="flex gap-4 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                {line.resolved ? (
-                  <>
-                    <p className="text-sm font-medium text-slate-900">
-                      {line.product.name}
+        <div className="overflow-hidden rounded-lg border border-line">
+          <ul className="divide-y divide-line">
+            {cart.lineItems.map((line, index) => (
+              <li key={`${line.productId}-${index}`} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:gap-6">
+                <div className="min-w-0 flex-1">
+                  {line.resolved ? (
+                    <>
+                      <p className="text-sm font-bold text-ink">{line.product.name}</p>
+                      <p className="mt-0.5 text-sm leading-relaxed text-muted">{line.product.description}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-amber-800">
+                      Product ID {line.productId} is not present in the products endpoint.
                     </p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-slate-600">
-                      {line.product.description}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-amber-800">
-                    Product ID {line.productId} is not present in the products
-                    endpoint.
-                  </p>
-                )}
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Qty
-                </p>
-                <p className="text-sm font-medium tabular-nums text-slate-900">
-                  {line.quantity}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  )}
+                </div>
+                <dl className="grid shrink-0 grid-cols-3 gap-4 text-right sm:w-64">
+                  <LineFigure label="Qty" value={line.quantity} />
+                  <LineFigure label="Unit" value={line.resolved ? formatCurrency(line.unitPrice) : "n/a"} />
+                  <LineFigure label="Total" value={line.resolved ? formatCurrency(line.lineTotal) : "n/a"} strong />
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="flex items-center justify-between border-t border-line bg-surface px-4 py-3 text-sm">
+            <span className="font-bold uppercase tracking-wide text-muted">Subtotal</span>
+            <span className="text-base font-black tabular-nums text-ink">{formatCurrency(cart.subtotal)}</span>
+          </div>
+        </div>
+        {cart.lineItems.some((line) => !line.resolved) && (
+          <p className="mt-2 text-xs text-amber-800">
+            The subtotal excludes lines whose product could not be found.
+          </p>
+        )}
       </section>
     </div>
   );
 }
 
-function StatusBadge({ status }) {
-  const tone =
-    {
-      Completed: "bg-emerald-100 text-emerald-800",
-      Pending: "bg-blue-100 text-blue-800",
-      Abandoned: "bg-slate-200 text-slate-700",
-    }[status] ?? "bg-slate-100 text-slate-700";
-
-  return (
-    <span className={`rounded px-2 py-0.5 text-xs font-medium ${tone}`}>
-      {status}
-    </span>
-  );
-}
-
-function Field({ label, value }) {
+function LineFigure({ label, value, strong }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-900">{value}</dd>
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</dt>
+      <dd className={`mt-0.5 text-sm tabular-nums ${strong ? "font-bold text-ink" : "text-ink"}`}>{value}</dd>
     </div>
   );
 }

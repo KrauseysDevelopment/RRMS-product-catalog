@@ -37,6 +37,13 @@ const BASE_URL =
 const key = (value) => (value === null || value === undefined ? null : String(value));
 
 /**
+ * Money is added in whole cents, then converted back to dollars once.
+ * Floating point cannot store most cent values exactly, so adding dollars
+ * directly drifts: 0.1 + 0.2 is 0.30000000000000004.
+ */
+const toCents = (dollars) => Math.round(Number(dollars) * 100);
+
+/**
  * Fetch one resource.
  *
  * `revalidate: 300` opts into Next's data cache: the response is reused for
@@ -93,8 +100,9 @@ export async function getCatalog() {
  * Returns the original cart fields plus:
  *   user       - the resolved user, or null
  *   userStatus - why the user is missing, when it is: "ok" | "guest" | "missing"
- *   lineItems  - each item with its product attached and a resolved flag
+ *   lineItems  - each item with its product, unit price and line total
  *   itemCount  - total units in the cart (sum of quantities, not line count)
+ *   subtotal   - sum of the line totals, in dollars
  *   displayDate - the cart date, formatted once on the server
  */
 function joinCart(cart, usersById, productsById) {
@@ -110,11 +118,16 @@ function joinCart(cart, usersById, productsById) {
 
   const lineItems = (cart.items ?? []).map((item) => {
     const product = productsById.get(key(item.productId)) ?? null;
+    const quantity = item.quantity ?? 0;
     return {
       productId: item.productId,
-      quantity: item.quantity,
+      quantity,
       product,
       resolved: Boolean(product),
+      unitPrice: product ? product.price : null,
+      // Line total in cents: price times quantity. Unresolved products have
+      // no price, so they contribute nothing and are flagged in the UI.
+      lineCents: product ? toCents(product.price) * quantity : 0,
     };
   });
 
@@ -122,7 +135,9 @@ function joinCart(cart, usersById, productsById) {
   // units? Total units is the more useful reading for a cart, so quantities
   // are summed. The list view labels the column "Items" and the detail view
   // shows the per-line quantities, so both readings are visible to the user.
-  const itemCount = lineItems.reduce((sum, line) => sum + (line.quantity ?? 0), 0);
+  const itemCount = lineItems.reduce((sum, line) => sum + line.quantity, 0);
+
+  const subtotal = lineItems.reduce((sum, line) => sum + line.lineCents, 0) / 100;
 
   // Format the date here, on the server, and hand the client a finished
   // string. Browsers and Node ship different ICU data, so the same
@@ -131,7 +146,19 @@ function joinCart(cart, usersById, productsById) {
   // hydration mismatch. One formatter, one output.
   const displayDate = formatDate(cart.date);
 
-  return { ...cart, userId, user, userStatus, lineItems, itemCount, displayDate };
+  return {
+    ...cart,
+    userId,
+    user,
+    userStatus,
+    lineItems: lineItems.map(({ lineCents, ...line }) => ({
+      ...line,
+      lineTotal: line.resolved ? lineCents / 100 : null,
+    })),
+    itemCount,
+    subtotal,
+    displayDate,
+  };
 }
 
 /** Display helpers kept next to the shape they format. */

@@ -1,6 +1,50 @@
 @import "tailwindcss";
 
-:root {
-  --rr-navy: #10243c;
-  --rr-red: #c8102e;
+/*
+ * Design tokens.
+ *
+ * The palette is taken from rrms.com: the signature cyan, the deeper blue,
+ * and the charcoal and gray used for body text. The cyan is used for accents
+ * and decorative shapes only. White text on it measures about 2.6:1, below
+ * the WCAG AA minimum of 4.5:1, so buttons and links use the deeper blue
+ * (about 5:1 against white) instead.
+ *
+ * Declared through @theme so Tailwind generates utilities from them:
+ * bg-brand, text-brand-deep, border-line, and so on.
+ */
+@theme {
+  --color-brand: #21ade4;
+  --color-brand-deep: #1b75bc;
+  --color-brand-ink: #10466f;
+  --color-brand-soft: #e6f6fc;
+  --color-ink: #343a40;
+  --color-muted: #636466;
+  --color-line: #e3e6ea;
+  --color-surface: #f8f9fa;
+
+  --font-sans: var(--font-roboto), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* A visible, consistent focus ring for keyboard users on every control. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-deep);
+  outline-offset: 2px;
+  border-radius: 4px;
 }

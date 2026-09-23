@@ -5,8 +5,8 @@ Submission for the Rapid Response Monitoring Services SE development task.
 A Next.js application that consumes the JSONing public mock API and presents
 products and carts, including full detail views and a validated create form.
 
-**Live:** _(deployment URL)_
-**Stack:** Next.js 16 (App Router), React 19, Tailwind CSS v4
+**Live:** https://rrms-product-catalog.vercel.app
+**Stack:** Next.js 16 (App Router), React 19, Tailwind CSS v4, ESLint
 
 ---
 
@@ -32,8 +32,8 @@ optionally override the API host for local testing.
 | Product list with name, price, category, stock | `src/components/ProductsView.jsx` |
 | Product detail with all fields, dismissible | `ProductDetail` in the same file |
 | Add Product form, all fields mandatory, success message | `src/components/AddProductForm.jsx` |
-| Cart list with customer, date, status, item count | `src/components/CartsView.jsx` |
-| Cart detail with contact info and line items | `CartDetail` in the same file |
+| Cart list with customer, date, status, item count (plus cart total) | `src/components/CartsView.jsx` |
+| Cart detail with contact info, line items, unit prices and subtotal | `CartDetail` in the same file |
 | API consumption and joining | `src/lib/api.js` |
 
 ---
@@ -76,6 +76,15 @@ Rather than render "undefined undefined", each cart is tagged with a
 that does not exist). The UI distinguishes the two failure modes, because an
 anonymous cart is normal while a dangling foreign key is a data problem.
 
+### Cart totals
+
+The carts endpoint has quantities but no prices, so totals come from the join:
+each line's product price times its quantity, summed into a cart subtotal.
+Money is added in whole cents and converted back to dollars once, because
+floating point cannot store most cent values exactly (`0.1 + 0.2` is
+`0.30000000000000004`). A line whose product cannot be found contributes
+nothing and is flagged.
+
 ### Rendering strategy
 
 Both data routes are server components marked `dynamic = "force-dynamic"`.
@@ -112,6 +121,16 @@ error inline next to its own field rather than one browser tooltip at a time.
 The API has no create endpoint, so a saved product is appended to local
 component state and flagged in the table rather than persisted.
 
+### Visual design
+
+The palette and typeface follow rrms.com: the signature cyan and deeper blue,
+charcoal text, and Roboto. White text on the cyan measures about 2.6:1, under
+the WCAG AA minimum of 4.5:1, so the cyan is used for accents and the deeper
+blue (about 4.9:1) carries buttons and links. Roboto is self-hosted from
+`src/fonts/` through `next/font/local`, so the build does not depend on
+Google Fonts being reachable. On phones, the tables switch to stacked cards so
+nothing scrolls sideways.
+
 ### Image URLs
 
 `image_url` values point at `example.com` and resolve to nothing. The task
@@ -125,7 +144,7 @@ that would show a broken-image icon.
 ```
 src/
   app/
-    layout.js          shared shell and navigation
+    layout.js          shared shell, navigation and font
     page.js            home, two buttons
     products/page.js   server component, fetches and delegates
     carts/page.js      server component, fetches and delegates
@@ -133,7 +152,10 @@ src/
     ProductsView.jsx   product table, detail row, add-form orchestration
     AddProductForm.jsx validated create form
     CartsView.jsx      cart table and joined detail view
+    NavLinks.jsx       navigation with the active page marked
+    ui.jsx             shared headers, badges and detail fields
     ApiError.jsx       upstream-failure state
   lib/
-    api.js             fetching, joining, formatting
+    api.js             fetching, joining, totals, formatting
+  fonts/               self-hosted Roboto (SIL Open Font License)
 ```
