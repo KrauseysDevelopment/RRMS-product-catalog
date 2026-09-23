@@ -17,8 +17,11 @@ import { DetailField, PageHeader, StatusBadge, TogglePill } from "@/components/u
 export default function CartsView({ carts }) {
   const [expandedId, setExpandedId] = useState(null);
 
+  // How many carts have no customer on file (guest or missing). Drives the
+  // review banner, which only appears when there is something to review.
   const unresolved = carts.filter((c) => c.userStatus !== "ok").length;
 
+  // Open the clicked cart, or close it if it is already open.
   function toggle(id) {
     setExpandedId((current) => (current === id ? null : id));
   }
@@ -45,7 +48,8 @@ export default function CartsView({ carts }) {
         </div>
       )}
 
-      {/* Desktop and tablet */}
+      {/* Desktop and tablet (768px and up): a real table, the right semantics
+          for comparing rows across columns. */}
       <div className="hidden overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line md:block">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Shopping carts</caption>
@@ -69,7 +73,8 @@ export default function CartsView({ carts }) {
         </table>
       </div>
 
-      {/* Phones */}
+      {/* Phones (under 768px): the same carts as stacked cards, so nothing
+          scrolls sideways. Shares expandedId with the table. */}
       <ul className="space-y-3 md:hidden">
         {carts.map((cart) => {
           const isOpen = expandedId === cart.id;
@@ -111,6 +116,11 @@ export default function CartsView({ carts }) {
   );
 }
 
+/**
+ * Small badge explaining why a cart has no customer: "Guest" for a cart with
+ * no userId, "Not on file" for a userId that matches no user. Renders nothing
+ * for a normal cart.
+ */
 function UserFlag({ cart }) {
   if (cart.userStatus === "ok") return null;
   return (
@@ -120,6 +130,10 @@ function UserFlag({ cart }) {
   );
 }
 
+/**
+ * One table row, plus the expanded detail row beneath it when open.
+ * Returns a fragment (<>...</>) because a row and its detail are two <tr>s.
+ */
 function CartRow({ cart, isOpen, onToggle }) {
   const detailId = `cart-detail-${cart.id}`;
   return (
@@ -141,6 +155,9 @@ function CartRow({ cart, isOpen, onToggle }) {
           {formatCurrency(cart.subtotal)}
         </td>
         <td className="px-4 py-3.5 text-right">
+          {/* The row is clickable for mouse users; this button is the keyboard
+              and screen-reader path. stopPropagation stops the click also
+              reaching the row, which would toggle it twice. */}
           <button
             type="button"
             aria-expanded={isOpen}
@@ -168,6 +185,12 @@ function CartRow({ cart, isOpen, onToggle }) {
   );
 }
 
+/**
+ * The expanded view of one cart: the customer's contact details (or an
+ * explanation of why there are none), then each line item with quantity,
+ * unit price and line total, then the subtotal. Every value was prepared by
+ * joinCart in lib/api.js; this component only lays it out.
+ */
 function CartDetail({ cart, onClose }) {
   const { user } = cart;
 
@@ -195,6 +218,8 @@ function CartDetail({ cart, onClose }) {
 
       <section className="mb-6">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">Customer</h3>
+        {/* user is null for guest and missing carts; say which, instead of
+            rendering empty fields. */}
         {user ? (
           <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
             <DetailField label="Name" value={`${user.firstname} ${user.lastname}`} />
@@ -224,6 +249,8 @@ function CartDetail({ cart, onClose }) {
         </h3>
         <div className="overflow-hidden rounded-lg border border-line">
           <ul className="divide-y divide-line">
+            {/* The index is part of the key in case the same product appears
+                on two lines of one cart. */}
             {cart.lineItems.map((line, index) => (
               <li key={`${line.productId}-${index}`} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:gap-6">
                 <div className="min-w-0 flex-1">
@@ -261,6 +288,7 @@ function CartDetail({ cart, onClose }) {
   );
 }
 
+/** One labelled number in a line item (Qty, Unit, Total). */
 function LineFigure({ label, value, strong }) {
   return (
     <div>

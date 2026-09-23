@@ -10,8 +10,9 @@
  * A cart, on its own, cannot satisfy the required detail view. It carries only
  * a userId and a list of productIds. The screen has to show the user's name,
  * email, city/state/zip and phone, plus each product's name and description.
- * None of that lives on the cart. So the three resources have to be joined
- * client-side into a single in-memory view. That join is the core of this app.
+ * None of that lives on the cart. So the three resources are joined on the
+ * server, in memory, into a single view before any page renders. Nothing is
+ * stored; the join runs per request. That join is the core of this app.
  *
  * Two traps in the real payload drive the design here:
  *
@@ -161,7 +162,13 @@ function joinCart(cart, usersById, productsById) {
   };
 }
 
-/** Display helpers kept next to the shape they format. */
+/**
+ * Display helpers, kept next to the data they format.
+ *
+ * formatCurrency is safe to call in the browser: currency output is the same
+ * in Node and every browser. formatDate is only called on the server (inside
+ * joinCart) because date output is not, as explained above.
+ */
 
 export function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {

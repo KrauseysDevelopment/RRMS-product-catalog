@@ -23,6 +23,9 @@ export default function ProductsView({ products }) {
   const [successMessage, setSuccessMessage] = useState("");
 
   const allProducts = [...products, ...addedProducts];
+  // The API has no list of categories, so build one from the products: a Set
+  // removes duplicates, then sort alphabetically. Feeds the header count and
+  // the Add Product form's dropdown.
   const categories = [...new Set(allProducts.map((p) => p.category))].sort();
   const categoryCount = categories.length;
 
@@ -30,6 +33,7 @@ export default function ProductsView({ products }) {
     setExpandedId((current) => (current === id ? null : id));
   }
 
+  // Called by AddProductForm once its validation passes.
   function handleProductAdded(product) {
     setAddedProducts((current) => [...current, product]);
     setShowForm(false);
@@ -151,6 +155,10 @@ export default function ProductsView({ products }) {
   );
 }
 
+/**
+ * One table row, plus the expanded detail row beneath it when open.
+ * Returns a fragment (<>...</>) because a row and its detail are two <tr>s.
+ */
 function ProductRow({ product, isOpen, onToggle }) {
   return (
     <>
@@ -200,6 +208,10 @@ function ProductRow({ product, isOpen, onToggle }) {
   );
 }
 
+/**
+ * Every field of one product. Used in both the table's detail row and the
+ * phone card, so the two layouts can never drift apart.
+ */
 function ProductDetail({ product, onClose }) {
   return (
     <div className="rounded-xl border border-line bg-white p-5 shadow-sm">
@@ -241,6 +253,7 @@ function ProductDetail({ product, onClose }) {
   );
 }
 
+/** Marks a product added through the form this session (not from the API). */
 function LocalBadge() {
   return (
     <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-amber-800">

@@ -44,6 +44,8 @@ export default async function HomePage() {
         className="absolute -right-10 top-0 hidden h-full w-[16%] -skew-x-12 bg-white/15 md:block"
       />
 
+      {/* Live summary card, desktop only (lg:block). Left out entirely if
+          the data could not be loaded. */}
       {summary && (
         <div className="absolute right-12 top-1/2 hidden w-64 -translate-y-1/2 rounded-xl bg-white/95 p-5 shadow-xl lg:block">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-deep">
@@ -90,6 +92,7 @@ export default async function HomePage() {
   );
 }
 
+/** One number in the At a glance card. `tone="warn"` renders it in amber. */
 function Figure({ label, value, tone }) {
   return (
     <div>

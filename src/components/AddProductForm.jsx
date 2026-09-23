@@ -67,6 +67,7 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
     });
   }
 
+  // Returns an object of { fieldName: "error message" }. Empty means valid.
   function validate(input) {
     const found = {};
     const required = (field, label) => {
@@ -110,6 +111,7 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
   }
 
   function handleSubmit(event) {
+    // Stop the browser's default form submit, which would reload the page.
     event.preventDefault();
     const found = validate(values);
     setErrors(found);
@@ -181,8 +183,8 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
             Category <span className="text-red-600">*</span>
           </label>
           {/* appearance-none drops the browser's native select styling, which
-              ignores padding on macOS, so the dropdown matches the inputs. The
-              chevron is drawn separately. */}
+              ignores padding on macOS. The fixed height matches the text
+              inputs (38px), and the chevron is drawn separately. */}
           <div className="relative mt-1">
             <select
               id="category"
@@ -191,7 +193,7 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
               onChange={(e) => setField("category", e.target.value)}
               aria-invalid={Boolean(errors.category)}
               aria-describedby={errors.category ? "category-error" : undefined}
-              className={`w-full appearance-none rounded-md border py-2 pl-3 pr-9 text-sm shadow-sm ${
+              className={`h-[2.375rem] w-full appearance-none rounded-md border py-2 pl-3 pr-9 text-sm shadow-sm ${
                 errors.category ? "border-red-400 bg-red-50" : "border-line bg-white"
               } ${values.category ? "text-ink" : "text-muted"}`}
             >
@@ -296,11 +298,15 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
           </button>
         </div>
       </form>
-
     </div>
   );
 }
 
+/**
+ * A labelled input with its error message. Every text and number field in the
+ * form uses this, so labels, required markers and error wiring are identical.
+ * `...rest` passes through extra attributes like min, max, step and placeholder.
+ */
 function TextField({ id, label, value, error, onChange, type = "text", ...rest }) {
   return (
     <div>

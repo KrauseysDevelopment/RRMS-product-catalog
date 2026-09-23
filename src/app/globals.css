@@ -7,7 +7,7 @@
  * and the charcoal and gray used for body text. The cyan is used for accents
  * and decorative shapes only. White text on it measures about 2.6:1, below
  * the WCAG AA minimum of 4.5:1, so buttons and links use the deeper blue
- * (about 5:1 against white) instead.
+ * (about 4.9:1 against white) instead.
  *
  * Declared through @theme so Tailwind generates utilities from them:
  * bg-brand, text-brand-deep, border-line, and so on.

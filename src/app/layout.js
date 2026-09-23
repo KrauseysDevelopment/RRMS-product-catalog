@@ -19,6 +19,14 @@ const roboto = localFont({
   display: "swap",
 });
 
+/**
+ * Root layout: the shell shared by every page.
+ *
+ * Next.js wraps each page.js in this component, passing the page in as
+ * `children`. It renders the parts that never change between pages: the
+ * skip link, the sticky header with navigation, and the footer. Page titles
+ * set in `metadata` here are the default; each page can override them.
+ */
 export const metadata = {
   title: "RRMS Product Catalog",
   description:
@@ -33,6 +41,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={roboto.variable}>
       <body className="flex min-h-screen flex-col bg-surface font-sans text-ink antialiased">
+        {/* Hidden until a keyboard user presses Tab, then lets them jump
+            past the header straight to the page content. */}
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:shadow"
@@ -40,6 +50,7 @@ export default function RootLayout({ children }) {
           Skip to content
         </a>
 
+        {/* Sticky header: stays at the top while the page scrolls. */}
         <header className="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
             <Link href="/" className="group flex items-center gap-3" aria-label="RRMS Product Catalog, home">
@@ -54,10 +65,12 @@ export default function RootLayout({ children }) {
                 </span>
               </span>
             </Link>
+            {/* Client component: highlights the current page. */}
             <NavLinks />
           </div>
         </header>
 
+        {/* The current page renders here. id="main" is the skip link's target. */}
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
           {children}
         </main>

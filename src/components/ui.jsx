@@ -3,6 +3,7 @@
  * No state and no hooks, so they work in server and client components alike.
  */
 
+/** Page title block: small eyebrow label, heading, description, optional button. */
 export function PageHeader({ eyebrow, title, description, action }) {
   return (
     <div className="mb-6 flex flex-wrap items-end gap-4">
@@ -18,6 +19,10 @@ export function PageHeader({ eyebrow, title, description, action }) {
   );
 }
 
+/**
+ * The round "+" on each row. Rotates 45 degrees into an "x" when open.
+ * Decorative only (aria-hidden); the surrounding button carries the label.
+ */
 export function TogglePill({ open }) {
   return (
     <span
@@ -31,6 +36,7 @@ export function TogglePill({ open }) {
   );
 }
 
+/** One label and value pair inside a <dl> in the detail panels. */
 export function DetailField({ label, value }) {
   return (
     <div>
@@ -46,6 +52,7 @@ const STATUS_TONES = {
   Abandoned: "bg-slate-100 text-slate-700 ring-slate-300",
 };
 
+/** Colored pill for a cart's status. Unknown statuses fall back to gray. */
 export function StatusBadge({ status }) {
   const tone = STATUS_TONES[status] ?? "bg-slate-100 text-slate-700 ring-slate-300";
   return (
