@@ -118,6 +118,12 @@ cannot express: rating between 0 and 5, stock as a whole number, price greater
 than zero, and whitespace-only input rejected. The JS layer also renders every
 error inline next to its own field rather than one browser tooltip at a time.
 
+Category is a dropdown of the categories already in the catalog, plus a "New
+category" option. The API has no categories resource (category is a text field
+on each product), so the list is derived from the products. Picking from it
+keeps new products consistent with existing ones, and a typed new category
+that matches an existing one apart from case is folded into it.
+
 The API has no create endpoint, so a saved product is appended to local
 component state and flagged in the table rather than persisted.
 

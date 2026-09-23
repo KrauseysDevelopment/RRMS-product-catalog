@@ -23,7 +23,8 @@ export default function ProductsView({ products }) {
   const [successMessage, setSuccessMessage] = useState("");
 
   const allProducts = [...products, ...addedProducts];
-  const categoryCount = new Set(allProducts.map((p) => p.category)).size;
+  const categories = [...new Set(allProducts.map((p) => p.category))].sort();
+  const categoryCount = categories.length;
 
   function toggleRow(id) {
     setExpandedId((current) => (current === id ? null : id));
@@ -75,7 +76,11 @@ export default function ProductsView({ products }) {
       )}
 
       {showForm && (
-        <AddProductForm onCancel={() => setShowForm(false)} onSubmit={handleProductAdded} />
+        <AddProductForm
+          categories={categories}
+          onCancel={() => setShowForm(false)}
+          onSubmit={handleProductAdded}
+        />
       )}
 
       {/* Desktop and tablet: a real table, the right semantics for comparing

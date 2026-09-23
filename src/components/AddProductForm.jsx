@@ -25,10 +25,14 @@ import { useState } from "react";
  * over which message the user sees first.
  */
 
+// Sentinel value for the "New category" option in the category dropdown.
+const NEW_CATEGORY = "__new__";
+
 const EMPTY_FORM = {
   name: "",
   price: "",
   category: "",
+  newCategory: "",
   description: "",
   stock: "",
   sku: "",
@@ -37,7 +41,14 @@ const EMPTY_FORM = {
   ratingCount: "",
 };
 
-export default function AddProductForm({ onSubmit, onCancel }) {
+/**
+ * `categories` is the list of categories already in the catalog. The API has
+ * no categories resource: category is a plain text field on each product. So
+ * the list is derived from the products themselves, and offered as a
+ * dropdown to keep new products consistent with existing ones ("Accessories",
+ * not "accessory"). "New category" is still available for a genuinely new one.
+ */
+export default function AddProductForm({ onSubmit, onCancel, categories = [] }) {
   const [values, setValues] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
 
@@ -45,10 +56,13 @@ export default function AddProductForm({ onSubmit, onCancel }) {
     setValues((current) => ({ ...current, [field]: value }));
     // Clear a field's error as soon as the user edits it, so the form stops
     // scolding them about something they are actively fixing.
+    // Changing the category also clears the "new category" error, since that
+    // field disappears when an existing category is picked.
+    const cleared = field === "category" ? [field, "newCategory"] : [field];
     setErrors((current) => {
-      if (!current[field]) return current;
+      if (!cleared.some((f) => current[f])) return current;
       const next = { ...current };
-      delete next[field];
+      cleared.forEach((f) => delete next[f]);
       return next;
     });
   }
@@ -61,6 +75,9 @@ export default function AddProductForm({ onSubmit, onCancel }) {
 
     required("name", "Name");
     required("category", "Category");
+    if (input.category === NEW_CATEGORY && !input.newCategory.trim()) {
+      found.newCategory = "Enter a name for the new category.";
+    }
     required("description", "Description");
     required("sku", "SKU");
     required("image_url", "Image URL");
@@ -98,6 +115,16 @@ export default function AddProductForm({ onSubmit, onCancel }) {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
+    // A "new" category that matches an existing one apart from case is
+    // treated as the existing one, so the catalog never ends up with both
+    // "Audio" and "audio".
+    let category = values.category;
+    if (category === NEW_CATEGORY) {
+      const typed = values.newCategory.trim();
+      category =
+        categories.find((c) => c.toLowerCase() === typed.toLowerCase()) ?? typed;
+    }
+
     // Shaped to match the API's product schema so it renders through exactly
     // the same components as a fetched product, with a local flag so the UI
     // can be honest that this one was never persisted.
@@ -106,7 +133,7 @@ export default function AddProductForm({ onSubmit, onCancel }) {
       name: values.name.trim(),
       description: values.description.trim(),
       price: Number(values.price),
-      category: values.category.trim(),
+      category,
       stock: Number(values.stock),
       sku: values.sku.trim(),
       image_url: values.image_url.trim(),
@@ -149,10 +176,43 @@ export default function AddProductForm({ onSubmit, onCancel }) {
           id="name" label="Name" value={values.name} error={errors.name}
           onChange={(v) => setField("name", v)}
         />
-        <TextField
-          id="category" label="Category" value={values.category} error={errors.category}
-          onChange={(v) => setField("category", v)}
-        />
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-ink">
+            Category <span className="text-red-600">*</span>
+          </label>
+          <select
+            id="category"
+            required
+            value={values.category}
+            onChange={(e) => setField("category", e.target.value)}
+            aria-invalid={Boolean(errors.category)}
+            aria-describedby={errors.category ? "category-error" : undefined}
+            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm ${
+              errors.category ? "border-red-400 bg-red-50" : "border-line bg-white"
+            }`}
+          >
+            <option value="">Select a category</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+            <option value={NEW_CATEGORY}>New category...</option>
+          </select>
+          {errors.category && (
+            <p id="category-error" className="mt-1 text-xs text-red-700">
+              {errors.category}
+            </p>
+          )}
+          {values.category === NEW_CATEGORY && (
+            <div className="mt-2">
+              <TextField
+                id="newCategory" label="New category name" value={values.newCategory}
+                error={errors.newCategory} onChange={(v) => setField("newCategory", v)}
+              />
+            </div>
+          )}
+        </div>
         <TextField
           id="price" label="Price (USD)" type="number" step="0.01" min="0.01"
           value={values.price} error={errors.price}
