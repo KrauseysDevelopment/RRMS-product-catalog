@@ -180,25 +180,40 @@ export default function AddProductForm({ onSubmit, onCancel, categories = [] }) 
           <label htmlFor="category" className="block text-sm font-medium text-ink">
             Category <span className="text-red-600">*</span>
           </label>
-          <select
-            id="category"
-            required
-            value={values.category}
-            onChange={(e) => setField("category", e.target.value)}
-            aria-invalid={Boolean(errors.category)}
-            aria-describedby={errors.category ? "category-error" : undefined}
-            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm ${
-              errors.category ? "border-red-400 bg-red-50" : "border-line bg-white"
-            }`}
-          >
-            <option value="">Select a category</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            <option value={NEW_CATEGORY}>New category...</option>
-          </select>
+          {/* appearance-none drops the browser's native select styling, which
+              ignores padding on macOS, so the dropdown matches the inputs. The
+              chevron is drawn separately. */}
+          <div className="relative mt-1">
+            <select
+              id="category"
+              required
+              value={values.category}
+              onChange={(e) => setField("category", e.target.value)}
+              aria-invalid={Boolean(errors.category)}
+              aria-describedby={errors.category ? "category-error" : undefined}
+              className={`w-full appearance-none rounded-md border py-2 pl-3 pr-9 text-sm shadow-sm ${
+                errors.category ? "border-red-400 bg-red-50" : "border-line bg-white"
+              } ${values.category ? "text-ink" : "text-muted"}`}
+            >
+              <option value="">Select a category</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+              <option value={NEW_CATEGORY}>New category...</option>
+            </select>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            >
+              <path
+                fill="currentColor"
+                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
+              />
+            </svg>
+          </div>
           {errors.category && (
             <p id="category-error" className="mt-1 text-xs text-red-700">
               {errors.category}
